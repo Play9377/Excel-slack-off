@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>2026年度合并财务报表_审计初稿.xlsx</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { width: 100%; height: 100%; overflow: hidden; font-family: "Segoe UI", "Microsoft YaHei", sans-serif; background: #fff; }
+
+        /* --- 1. Excel 伪装层 --- */
+        #excel-mask { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 100; display: flex; flex-direction: column; }
+        .excel-header { height: 115px; background: #f3f2f1; border-bottom: 1px solid #d1d1d1; }
+        .tab-bar { padding: 8px 20px; font-size: 12px; color: #333; display: flex; gap: 15px; border-bottom: 1px solid #e1e1e1; }
+        .tab-bar span:first-child { color: #217346; font-weight: bold; border-bottom: 2px solid #217346; }
+        .formula-bar { height: 32px; border-bottom: 1px solid #d1d1d1; display: flex; align-items: center; padding: 0 10px; font-size: 13px; background: #fff; }
+        .grid-container { flex: 1; overflow: auto; background: #e1e1e1; }
+        .excel-table { border-collapse: collapse; background: #fff; width: 100%; min-width: 1200px; }
+        .excel-table th, .excel-table td { border: 1px solid #d1d1d1; height: 24px; font-size: 12px; padding: 0 6px; }
+        .row-num { background: #f8f9fa; width: 40px; text-align: center; color: #888; }
+        .excel-footer { height: 28px; background: #217346; color: white; display: flex; align-items: center; padding: 0 15px; font-size: 12px; }
+
+        /* --- 2. 摸鱼窗口层 --- */
+        .fish-frame { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; visibility: hidden; z-index: 10; }
+        .active { visibility: visible !important; z-index: 200 !important; }
+
+        /* --- 3. 终极避险：系统更新界面 --- */
+        #update-mask {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; color: #fff; z-index: 9999;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            cursor: none; font-family: "Segoe UI Light", "Microsoft YaHei Light", sans-serif;
+        }
+        .loader { width: 50px; height: 50px; border: 3px solid #fff; border-top: 3px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .update-text { font-size: 24px; text-align: center; line-height: 1.5; }
+        .sub-text { font-size: 14px; color: #aaa; margin-top: 10px; }
+
+        /* 极简提示 */
+        #hint { position: fixed; bottom: 5px; right: 5px; font-size: 9px; color: #ccc; z-index: 10000; opacity: 0.1; }
+    </style>
+</head>
+<body>
+
+    <!-- Excel 层 -->
+    <div id="excel-mask">
+        <div class="excel-header">
+            <div class="tab-bar"><span>文件</span><span>开始</span><span>公式</span><span>数据</span><span>审阅</span><span>视图</span></div>
+            <div style="padding:10px 20px; color:#999; font-size:11px">正在连接企业财务数据库 (ERP_PROD_01)...</div>
+        </div>
+        <div class="formula-bar">
+            <div style="width:50px; border-right:1px solid #ddd; margin-right:10px">C12</div>
+            <b><i>fx</i></b><div id="active-formula" style="margin-left:10px">=GET_REPORT_DATA("YEAR_2026", A12, "AUDIT_VAL")</div>
+        </div>
+        <div class="grid-container">
+            <table class="excel-table">
+                <thead><tr><th class="row-num"></th><th>A (科目编号)</th><th>B (科目名称)</th><th>C (本期借方)</th><th>D (本期贷方)</th><th>E (核查状态)</th></tr></thead>
+                <tbody id="table-content"></tbody>
+            </table>
+        </div>
+        <div class="excel-footer">就绪 | 财务报表合并引擎 v8.2</div>
+    </div>
+
+    <!-- 摸鱼层 -->
+    <iframe id="slot1" class="fish-frame" src="https://play9377.github.io/play-music/"></iframe>
+    <iframe id="slot2" class="fish-frame" src="https://play9377.github.io/"></iframe>
+
+    <!-- 强制更新层 (假死) -->
+    <div id="update-mask">
+        <div class="loader"></div>
+        <div class="update-text">正在配置 Windows 更新<br><span id="percent">34</span>% 完成</div>
+        <div class="sub-text">请勿关闭计算机。这可能需要一段时间。</div>
+        <div class="sub-text">您的电脑将重启数次。</div>
+    </div>
+
+    <div id="hint">Alt+1/2: Fish | Esc: Excel | ~: Update</div>
+
+    <script>
+        // 1. 生成财务数据
+        const subjects = ["1001 库存现金", "1002 银行存款", "1101 交易性金融资产", "1122 应收账款", "1221 其他应收款", "1403 原材料", "1405 库存商品", "1601 固定资产", "1602 累计折旧", "2001 短期借款", "2202 应付账款", "2221 应交税费"];
+        const tbody = document.getElementById('table-content');
+        subjects.forEach((s, i) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td class="row-num">${i+1}</td><td>${1000+i*10}</td><td>${s}</td><td style="text-align:right">${(Math.random()*500000).toLocaleString()}</td><td style="text-align:right">0.00</td><td style="color:green">已对账</td>`;
+            tbody.appendChild(tr);
+        });
+
+        // 2. 核心逻辑
+        const updateMask = document.getElementById('update-mask');
+        const frames = document.querySelectorAll('.fish-frame');
+        let updateInterval;
+
+        document.addEventListener('keydown', (e) => {
+            // [ ` ] 键 (Esc下面): 触发系统更新假死
+            if (e.key === '`') {
+                updateMask.style.display = 'flex';
+                document.body.requestFullscreen(); // 自动尝试全屏（部分浏览器需点击触发）
+                startUpdateSimulation();
+                return;
+            }
+
+            // [ Esc ]: 退出所有，返回 Excel
+            if (e.key === 'Escape') {
+                updateMask.style.display = 'none';
+                clearInterval(updateInterval);
+                frames.forEach(f => f.classList.remove('active'));
+                if (document.fullscreenElement) document.exitFullscreen();
+            }
+
+            // [ Alt + 1 / 2 ]: 切换摸鱼
+            if (e.altKey && (e.key === '1' || e.key === '2')) {
+                updateMask.style.display = 'none';
+                const idx = parseInt(e.key) - 1;
+                frames.forEach(f => f.classList.remove('active'));
+                frames[idx].classList.add('active');
+            }
+        });
+
+        // 3. 模拟百分比增长
+        function startUpdateSimulation() {
+            let p = 34;
+            clearInterval(updateInterval);
+            updateInterval = setInterval(() => {
+                p += Math.floor(Math.random() * 2);
+                if (p > 99) p = 99;
+                document.getElementById('percent').innerText = p;
+            }, 10000); // 涨得很慢，才真实
+        }
+
+        // 点击单元格聚焦
+        document.addEventListener('click', (e) => {
+            if (e.target.tagName === 'TD') {
+                document.querySelectorAll('td').forEach(t => t.style.outline = "none");
+                e.target.style.outline = "2px solid #217346";
+                e.target.style.outlineOffset = "-2px";
+            }
+        });
+    </script>
+</body>
+</html>
